@@ -16,10 +16,12 @@ spec:
     spec:
       containers:
         - name: vprodb
-          image: ajaladi1035/vprofiledb:latest
+          image: vprofile/vprofiledb:V1
+#          args:
+#            - "--ignore-db-dir=lost+found"
           volumeMounts:
             - mountPath: /var/lib/mysql
-              name: vpro-db-date
+              name: vpro-db-data
           ports:
             - name: vprodb-port
               containerPort: 3306
@@ -27,20 +29,19 @@ spec:
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: wordpress-secrets
-                  key: app-secret
+                  name: app-secret
+                  key: db-pass
       nodeSelector:
         zone: us-east-1a
       volumes:
-        - name: vpro-db-date
+        - name: vpro-db-data
           awsElasticBlockStore:
-            volumeID: vol-0e40fde57551e16f9
+            volumeID: vol-0bcd6bddaa2c94232
             fsType: ext4
       initContainers:
         - name: busybox
           image: busybox:latest
-          args: ["rm","-rf", "/var/lib/mysql/lost+found"]
+          args: ["rm", "-rf", "/var/lib/mysql/lost+found"]
           volumeMounts:
-            - name: vpro-db-date
+            - name: vpro-db-data
               mountPath: /var/lib/mysql
-
