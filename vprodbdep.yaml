@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vprodb
+  labels:
+    app: vprodb
+spec:
+  selector:
+    matchLabels:
+      app: vprodb
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: vprodb
+    spec:
+      containers:
+        - name: vprodb
+          image: ajaladi1035/vprofileapp:latest
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: vpro-db-date
+          ports:
+            - name: vprodb-port
+              containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-secrets
+                  key: app-secret
+      nodeSelector:
+        zone: us-east-1a
+      volumes:
+        - name: vpro-db-date
+          awsElasticBlockStore:
+          volumeID: vol-0e40fde57551e16f9
+          fsType: ext4
+      initContainers:
+        - name: busybox
+          image: busybox:latest
+          args: ["rm","-rf", "/var/lib/mysql/lost+found"]
+          volumeMounts:
+            - name: vpro-db-date
+              mountPath: /var/lib/mysql
+
